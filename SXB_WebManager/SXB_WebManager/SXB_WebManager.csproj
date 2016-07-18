@@ -173,6 +173,16 @@
     <Folder Include="Models\" />
     <Folder Include="Views\Default\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Entity\Entity.csproj">
+      <Project>{cb47013c-8c72-4bfb-be2e-fc51f9ea3743}</Project>
+      <Name>Entity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SXB_ORM\SXB_ORM.csproj">
+      <Project>{7cf3ec2f-27e0-488d-9100-827acfeb2411}</Project>
+      <Name>SXB_ORM</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
