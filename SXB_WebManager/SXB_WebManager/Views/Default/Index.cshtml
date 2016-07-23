@@ -5,8 +5,18 @@
 }
 
 <div ng-app="sxb">
-    <div ng-controller="GetSYS_USER">
-        <h2>{{users}}</h2>
+    <div  ng-controller="GetSYS_USER">
+        <table class="table table-bordered">
+            <tbody ng-repeat="user in users" ng-click="selectUser(user)" ng-switch on="isSelected(user)">
+                <tr>
+                    <td>{{user.USERNAME}}</td>
+                    <td>{{user.USERCODE}}</td>
+                </tr>
+                <tr ng-switch-when="true">
+                    <td colspan="2">{{user.USERNAME}}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -19,6 +29,14 @@
             sysusers.success(function (data, status, headers, config) {
                 $scope.users = data;
             });
+
+            $scope.selectUser = function (user) {
+                $scope.selectedUser = user;
+            };
+
+            $scope.isSelected = function (user) {
+                return $scope.selectedUser === user;
+            };
         }
     );
 
