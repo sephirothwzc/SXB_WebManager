@@ -5,37 +5,88 @@
 }
 
 <div ng-app="sxb">
-    <div  ng-controller="GetSYS_USER">
-        <table class="table table-bordered">
-            <tbody ng-repeat="user in users" ng-click="selectUser(user)" ng-switch on="isSelected(user)">
-                <tr>
-                    <td>{{user.USERNAME}}</td>
-                    <td>{{user.USERCODE}}</td>
-                </tr>
-                <tr ng-switch-when="true">
-                    <td colspan="2">{{user.USERNAME}}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <table class="table table-bordered table-striped" ng-controller="GetSYS_USER">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>编码</th>
+            </tr>
+        </thead>
+        <tbody ng-repeat="user in users" ng-click="selectUser(user)" ng-switch on="isSelected(user)" >
+            <tr>
+                <td>{{user.USERNAME}}</td>
+                <td>{{user.USERCODE}}</td>
+            </tr>
+            <tr ng-switch-when="true">
+                <td colspan="2">{{user.USERNAME}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <p></p>
+    <table class="table table-bordered table-hover" ng-controller="UserCtrl">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>编码</th>
+            </tr>
+        </thead>
+        <tbody ng-repeat="user in users" 
+               ng-click="toggleSelected()" ng-switch on="isSelected()">
+            <tr>
+                <td>{{user.USERNAME}}</td>
+                <td>{{user.USERCODE}}</td>
+            </tr>
+            <tr ng-switch-when="true">
+                <td colspan="2">{{user.USERNAME}}</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 <script type="text/javascript">
     var ajsxb = angular.module('sxb', []);
+    //异步ajax请求服务器获取数据，$q data是异步返回的,必须使用$q的promise，增加了cache：true 开启 缓存机制多次调用1次获取
+    ajsxb.factory('Users', function ($http, $q) {
+        return {
+            UsersQ: function () {
+                var Udefer = $q.defer();
+                $http.get('../../SYS_USER/GetSYS_USER', { cache:true })
+                    .success(function (data, status, headers, config) {
+                        Udefer.resolve(data);
+                    });
+                return Udefer.promise;
+            }
+        };
+    });
 
     ajsxb.controller('GetSYS_USER',
-        function ($scope,$http) {
-            var sysusers = $http.get('../../SYS_USER/GetSYS_USER');
-            sysusers.success(function (data, status, headers, config) {
+        function ($scope, Users) {
+            Users.UsersQ().then(function (data) {
                 $scope.users = data;
             });
-
+            //on-click点击选择选中行
             $scope.selectUser = function (user) {
                 $scope.selectedUser = user;
             };
-
+            //判断是否选中行加载ng-swith-when
             $scope.isSelected = function (user) {
                 return $scope.selectedUser === user;
+            };
+        }
+    );
+
+    ajsxb.controller('UserCtrl',
+        function ($scope, Users) {
+            Users.UsersQ().then(function (data) {
+                $scope.users = data
+            });
+
+            $scope.toggleSelected = function () {
+                $scope.selected = !$scope.selected;
+            };
+
+            $scope.isSelected = function () {
+                return $scope.selected;
             };
         }
     );
