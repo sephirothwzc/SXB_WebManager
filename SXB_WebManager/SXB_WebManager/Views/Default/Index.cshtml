@@ -12,7 +12,7 @@
                 <th>编码</th>
             </tr>
         </thead>
-        <tbody ng-repeat="user in users" ng-click="selectUser(user)" ng-switch on="isSelected(user)" >
+        <tbody ng-repeat="user in users" ng-click="selectUser(user)" ng-switch on="isSelected(user)">
             <tr>
                 <td>{{user.USERNAME}}</td>
                 <td>{{user.USERCODE}}</td>
@@ -30,7 +30,7 @@
                 <th>编码</th>
             </tr>
         </thead>
-        <tbody ng-repeat="user in users" 
+        <tbody ng-repeat="user in users"
                ng-click="toggleSelected()" ng-switch on="isSelected()">
             <tr>
                 <td>{{user.USERNAME}}</td>
@@ -41,6 +41,59 @@
             </tr>
         </tbody>
     </table>
+    <p>过滤</p>
+    <div class="well">
+        <label>
+            过滤：<input type="text" ng-model="criteria" />
+        </label>
+    </div>
+    <table class="table table-bordered" ng-controller="fuser">
+        <thead>
+            <tr>
+                <th ng-click="sort('ROW_ID')">ROW_ID
+                    <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('ROW_ID'),
+                       'glyphicon glyphicon-chevron-down': isSortDown('ROW_ID')}"></i>
+                </th>
+                <th ng-click="sort('USERNAME')">名称
+                    <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('USERNAME'),
+                       'glyphicon glyphicon-chevron-down': isSortDown('USERNAME')}"></i>
+                </th>
+                <th ng-click="sort('USERCODE')">编号
+                    <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('USERCODE'),
+                       'glyphicon glyphicon-chevron-down': isSortDown('USERCODE')}"></i>
+                </th>
+                <th ng-click="sort('PASSWORD')">密码
+                    <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('PASSWORD'),
+                       'glyphicon glyphicon-chevron-down': isSortDown('PASSWORD')}"></i>
+                </th>
+                <th ng-click="sort('REMARK')">备注
+                    <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('REMARK'),
+                       'glyphicon glyphicon-chevron-down': isSortDown('REMARK')}"></i>
+                </th>
+                <th ng-click="sort('CREATEDATE')">创建时间
+                    <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('CREATEDATE'),
+                       'glyphicon glyphicon-chevron-down': isSortDown('CREATEDATE')}"></i>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @*<tr ng-repeat="item in users | filter: { $ : criteria }">*@
+            <tr ng-repeat="item in filteredusers =(users| filter: { $ : criteria } | orderBy: sortField: reverse)">
+                <td>{{item.ROW_ID}}</td>
+                <td>{{item.USERNAME}}</td>
+                <td>{{item.USERCODE}}</td>
+                <td>{{item.PASSWORD}}</td>
+                <td>{{item.REMARK}}</td>
+                <td>{{jsonDateFormat(item.CREATEDATE,'yyyy-MM-dd')}}</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                @*<td colspan="6">ToTal：{{ (users| filter: { $ : criteria }).length}}</td>*@
+                <td colspan="6">ToTal：{{ filteredusers.length}}</td> @*不直观*@
+            </tr>
+        </tfoot>
+    </table>
 </div>
 
 <script type="text/javascript">
@@ -50,7 +103,7 @@
         return {
             UsersQ: function () {
                 var Udefer = $q.defer();
-                $http.get('../../SYS_USER/GetSYS_USER', { cache:true })
+                $http.get('../../SYS_USER/GetSYS_USER', { cache: true })
                     .success(function (data, status, headers, config) {
                         Udefer.resolve(data);
                     });
@@ -59,6 +112,7 @@
         };
     });
 
+    //table1 点击展示详细
     ajsxb.controller('GetSYS_USER',
         function ($scope, Users) {
             Users.UsersQ().then(function (data) {
@@ -75,6 +129,7 @@
         }
     );
 
+    //table2
     ajsxb.controller('UserCtrl',
         function ($scope, Users) {
             Users.UsersQ().then(function (data) {
@@ -91,4 +146,51 @@
         }
     );
 
+    //过滤 filter
+    ajsxb.controller('fuser',
+        function ($scope, Users) {
+            Users.UsersQ().then(function (data) {
+                $scope.users = data
+            });
+
+            $scope.jsonDateFormat = jsonDateFormat;
+            //初始化 排序对象
+            $scope.sortField = undefined;
+            $scope.reverse = false;
+
+            //点击排序事件
+            $scope.sort = function (fieldName) {
+                if ($scope.sortField === fieldName) {
+                    $scope.reverse = !$scope.reverse;//逆排
+                } else {
+                    $scope.sortField = fieldName;//设置排序列
+                    $scope.reverse = false;//默认值排序
+                }
+            };
+
+            //ng-class icon-chevron-up
+            $scope.isSortUp = function (fieldName) {
+                return $scope.sortField === fieldName && !$scope.reverse;
+            };
+            $scope.isSortDown = function (fieldName) {
+                return $scope.sortField === fieldName && $scope.reverse;
+            };
+        }
+    );
+
+    //日期转换函数
+    function jsonDateFormat(jsonDate) {//json日期格式转换为正常格式
+        try {//出自http://www.cnblogs.com/ahjesus 尊重作者辛苦劳动成果,转载请注明出处,谢谢!
+            var date = new Date(parseInt(jsonDate.replace("/Date(", "").replace(")/", ""), 10));
+            var month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+            var day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            var seconds = date.getSeconds();
+            var milliseconds = date.getMilliseconds();
+            return date.getFullYear() + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+        } catch (ex) {//出自http://www.cnblogs.com/ahjesus 尊重作者辛苦劳动成果,转载请注明出处,谢谢!
+            return "";
+        }
+    }
 </script>
