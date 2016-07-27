@@ -3,6 +3,25 @@
     ViewBag.Title = "Index";
     Layout = "~/Views/_Layout.cshtml";
 }
+<div>
+    <h1>添加用户</h1>
+    <label>用户名</label>
+    <input type="text" ng-model="user.USERNAME" />
+
+    <label>密码</label>
+    <input type="password" ng-model="user.PASSWORD" />
+
+    <label>确认密码</label>
+    <input type="password" ng-model="repeatPASSWORD" />
+
+    <label>编号</label>
+    <input type="text" ng-model="user.USERCODE" />
+
+    <label>备注</label>
+    <input type="text" ng-model="user.REMARK" />
+
+    <pre ng-bind="user | json"></pre>
+</div>
 
 <div ng-app="sxb">
     <table class="table table-bordered table-striped" ng-controller="GetSYS_USER">
@@ -12,7 +31,7 @@
                 <th>编码</th>
             </tr>
         </thead>
-        <tbody ng-repeat="user in users" ng-click="selectUser(user)" ng-switch on="isSelected(user)">
+        <tbody ng-repeat="user in itemuser =( users | pagination:pageHelper.pageNo:pageHelper.pageSize)" ng-click="selectUser(user)" ng-switch on="isSelected(user)">
             <tr>
                 <td>{{user.USERNAME}}</td>
                 <td>{{user.USERCODE}}</td>
@@ -21,6 +40,32 @@
                 <td colspan="2">{{user.USERNAME}}</td>
             </tr>
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2">
+                    <nav>
+                        <ul class="pagination">
+                            <li>
+                                <a href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li ng-repeat="i in getNum(pageHelper.pageCount) track by $index">
+                                <a href="#" ng-click="setPageNo($index)">{{$index + 1}}</a>
+                            </li>
+                            <li>
+                                <a href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li>
+                                <input type="text" ng-model="pageHelper.pageSize" ng-required="true"/>
+                            </li>
+                        </ul>
+                    </nav>
+                </td>
+            </tr>
+        </tfoot>
     </table>
     <p></p>
     <table class="table table-bordered table-hover" ng-controller="UserCtrl">
@@ -30,7 +75,7 @@
                 <th>编码</th>
             </tr>
         </thead>
-        <tbody ng-repeat="user in users"
+        <tbody ng-repeat="user in itemuser =( users | pagination:1:5)"
                ng-click="toggleSelected()" ng-switch on="isSelected()">
             <tr>
                 <td>{{user.USERNAME}}</td>
@@ -50,27 +95,33 @@
     <table class="table table-bordered" ng-controller="fuser">
         <thead>
             <tr>
-                <th ng-click="sort('ROW_ID')">ROW_ID
+                <th ng-click="sort('ROW_ID')">
+                    ROW_ID
                     <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('ROW_ID'),
                        'glyphicon glyphicon-chevron-down': isSortDown('ROW_ID')}"></i>
                 </th>
-                <th ng-click="sort('USERNAME')">名称
+                <th ng-click="sort('USERNAME')">
+                    名称
                     <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('USERNAME'),
                        'glyphicon glyphicon-chevron-down': isSortDown('USERNAME')}"></i>
                 </th>
-                <th ng-click="sort('USERCODE')">编号
+                <th ng-click="sort('USERCODE')">
+                    编号
                     <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('USERCODE'),
                        'glyphicon glyphicon-chevron-down': isSortDown('USERCODE')}"></i>
                 </th>
-                <th ng-click="sort('PASSWORD')">密码
+                <th ng-click="sort('PASSWORD')">
+                    密码
                     <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('PASSWORD'),
                        'glyphicon glyphicon-chevron-down': isSortDown('PASSWORD')}"></i>
                 </th>
-                <th ng-click="sort('REMARK')">备注
+                <th ng-click="sort('REMARK')">
+                    备注
                     <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('REMARK'),
                        'glyphicon glyphicon-chevron-down': isSortDown('REMARK')}"></i>
                 </th>
-                <th ng-click="sort('CREATEDATE')">创建时间
+                <th ng-click="sort('CREATEDATE')">
+                    创建时间
                     <i ng-class="{'glyphicon glyphicon-chevron-up': isSortUp('CREATEDATE'),
                        'glyphicon glyphicon-chevron-down': isSortDown('CREATEDATE')}"></i>
                 </th>
@@ -99,24 +150,45 @@
 <script type="text/javascript">
     var ajsxb = angular.module('sxb', []);
     //异步ajax请求服务器获取数据，$q data是异步返回的,必须使用$q的promise，增加了cache：true 开启 缓存机制多次调用1次获取
-    ajsxb.factory('Users', function ($http, $q) {
-        return {
-            UsersQ: function () {
-                var Udefer = $q.defer();
-                $http.get('../../SYS_USER/GetSYS_USER', { cache: true })
-                    .success(function (data, status, headers, config) {
-                        Udefer.resolve(data);
-                    });
-                return Udefer.promise;
-            }
-        };
-    });
+    ajsxb.factory('Users',
+        function ($http, $q) {
+            return {
+                UsersQ: function () {
+                    var Udefer = $q.defer();
+                    $http.get('../../SYS_USER/GetSYS_USER', { cache: true })
+                        .success(function (data, status, headers, config) {
+                            Udefer.resolve(data);
+                        });
+                    return Udefer.promise;
+                }
+            };
+        }
+    );
+
+    //分页过滤
+    ajsxb.filter('pagination',
+        function () {
+            return function (inputArray, selectPage, pageSize) {
+                if (inputArray === undefined)
+                    return;
+                var start = selectPage * pageSize;
+                return inputArray.slice(start, start + pageSize);
+            };
+        }
+    );
 
     //table1 点击展示详细
     ajsxb.controller('GetSYS_USER',
         function ($scope, Users) {
+            $scope.pageHelper = {
+                pageNo: 0,
+                pageSize: 5,
+                pageCount: 1
+            };
+
             Users.UsersQ().then(function (data) {
                 $scope.users = data;
+                $scope.pageHelper.pageCount = Math.ceil(data.length / $scope.pageHelper.pageSize);
             });
             //on-click点击选择选中行
             $scope.selectUser = function (user) {
@@ -125,6 +197,15 @@
             //判断是否选中行加载ng-swith-when
             $scope.isSelected = function (user) {
                 return $scope.selectedUser === user;
+            };
+
+            //创建页数数组用于repeat
+            $scope.getNum = function (num) {
+                return new Array(num);
+            };
+
+            $scope.setPageNo = function (num) {
+                $scope.pageHelper.pageNo = num ;
             };
         }
     );
