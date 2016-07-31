@@ -3,27 +3,75 @@
     ViewBag.Title = "Index";
     Layout = "~/Views/_Layout.cshtml";
 }
-<div>
+<style type="text/css">
+    /*配合control-group才有效*/
+    .ng-pristine {
+        border: solid black 1px;
+    }
+
+    .ng-diry {
+        border: solid black 3px;
+    }
+
+    .ng-valid.ng-dirty {
+        border: solid green 3px;
+    }
+
+    .ng-invalid.ng-dirty {
+        border: solid red 3px;
+    }
+</style>
+
+<p>form表单验证,对象选取 取决于name 不取决于id,novalidate关闭浏览器自带验证</p>
+<form  id="userInfo" name="userInfoForm" ng-app="app_formError" ng-controller="MainCtrl" novalidate >
+    <div class="control-group" ng-class="getCssClasses(userInfoForm.email)">
+        <label>邮箱</label>
+        <input type="email" ng-model="user.EMAIL" name="email" required />
+
+        <span ng-show="showError(userInfoForm.email,'email')">必须输入一个合法的邮箱</span>
+        <span ng-show="showError(userInfoForm.email,'required')">邮箱为必填项目</span>
+        
+        <input type="button" ng-disabled="!canSave()" value="保存" />
+    </div>
+</form>
+
+<p>无form表单</p>
+
+<div ng-app="app_add" ng-controller="newitem" class="control-group" id="app_add">
     <h1>添加用户</h1>
     <label>用户名</label>
-    <input type="text" ng-model="user.USERNAME" />
+    <input type="text" ng-model="tuser.USERNAME" ng-required="true" />
 
     <label>密码</label>
-    <input type="password" ng-model="user.PASSWORD" />
+    <input type="password" ng-model="tuser.PASSWORD" />
 
     <label>确认密码</label>
     <input type="password" ng-model="repeatPASSWORD" />
 
     <label>编号</label>
-    <input type="text" ng-model="user.USERCODE" />
+    <input type="text" ng-model="tuser.USERCODE" />
 
     <label>备注</label>
-    <input type="text" ng-model="user.REMARK" />
+    <input type="text" ng-model="tuser.REMARK" />
 
-    <pre ng-bind="user | json"></pre>
+    <pre ng-bind="tuser | json"></pre>
+
+    <label>选择对象</label>
+    <select ng-model="selName1" ng-options="user.USERNAME+' '+user.USERCODE for user in users" multiple="multiple"></select>
+    {{selName1}}
+    <label>只选名字</label>
+    <select ng-model="selName2" ng-options="user.USERNAME as user.USERNAME+' '+user.USERCODE for user in users"></select>
+    {{selName2}}
+    <label>分组显示</label>
+    <select ng-model="selName3" ng-options="user.USERNAME as user.USERCODE group by user.USERCODE for user in users"></select>
+    {{selName3}}
+
+    <label>对象数据源</label>
+    <select ng-model="byCode" ng-options="code as name for (code,name) in countriesByCode"></select>
+    {{byCode}}
 </div>
 
-<div ng-app="sxb">
+<div id="test2" ng-app="sxb">
     <table class="table table-bordered table-striped" ng-controller="GetSYS_USER">
         <thead>
             <tr>
@@ -59,7 +107,7 @@
                                 </a>
                             </li>
                             <li>
-                                <input type="text" ng-model="pageHelper.pageSize" ng-required="true"/>
+                                <input type="text" ng-model="pageHelper.pageSize" ng-required="true" />
                             </li>
                         </ul>
                     </nav>
@@ -148,6 +196,11 @@
 </div>
 
 <script type="text/javascript">
+    /*写在前边的话
+    *1、一个页面默认只能有一个 app 手动启动angular.bootstrap(document.getElementById("test2"), ['sxb']);
+     2、用run方法执行 初始化
+    */
+
     var ajsxb = angular.module('sxb', []);
     //异步ajax请求服务器获取数据，$q data是异步返回的,必须使用$q的promise，增加了cache：true 开启 缓存机制多次调用1次获取
     ajsxb.factory('Users',
@@ -205,7 +258,7 @@
             };
 
             $scope.setPageNo = function (num) {
-                $scope.pageHelper.pageNo = num ;
+                $scope.pageHelper.pageNo = num;
             };
         }
     );
@@ -274,4 +327,49 @@
             return "";
         }
     }
+
+    //------------------------app_add-----------------------
+    angular.module('app_add', ['sxb'])
+
+        .controller('newitem',
+            function ($scope, Users) {
+                Users.UsersQ().then(function (data) {
+                    $scope.users = data;
+                });
+
+                $scope.countriesByCode = {
+                    '中文': 'CH',
+                    '英文': 'EN'
+                };
+            }
+        );
+
+    //------------------------app_formError-----------------
+    angular.module('app_formError', [])
+
+        .controller('MainCtrl',
+            function ($scope) {
+                $scope.getCssClasses = function (ngModelController) {
+                    return {
+                        error: ngModelController.$invalid && ngModelController.$idirty,
+                        success : ngModelController.$valid && ngModelController.$dirty
+                    };
+                };
+
+                $scope.showError = function (ngModelController, error) {
+                    return ngModelController.$error[error];
+                };
+
+                $scope.canSave = function () {
+                    return $scope.userInfoForm.$dirty &&
+                        $scope.userInfoForm.$valid;
+                };
+            }
+        );
+
+    //手动启动第1个 ng-app
+    angular.bootstrap(document.getElementById("app_add"), ['app_add']);
+    //手动启动第二个 ng-app
+    angular.bootstrap(document.getElementById("test2"), ['sxb']);
+    //angular.bootstrap(document.getElementById("test2"), ['sxb']);
 </script>
