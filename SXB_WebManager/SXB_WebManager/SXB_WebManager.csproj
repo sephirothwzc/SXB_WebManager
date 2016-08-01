@@ -204,6 +204,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Models\" />
+    <Folder Include="scripts\ViewsJs\" />
     <Folder Include="Views\SYS_USER\" />
   </ItemGroup>
   <ItemGroup>
