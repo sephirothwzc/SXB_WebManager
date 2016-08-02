@@ -35,6 +35,13 @@
         <span ng-show="showError(userInfoForm.email,'required')">邮箱为必填项目</span>
 
         <ng-include src="'passwordform'"></ng-include>
+
+        <div ng-repeat="website in user.websites">
+            <input type="url" ng-model="website.url" />
+            <button ng-click="remove($index)">x</button>
+        </div>
+        <button ng-click="addwebsite()">新增网址</button>
+
         <input type="button" ng-disabled="!canSave()" value="保存" />
     </div>
 
@@ -372,13 +379,32 @@
                     };
                 };
 
+                //提示文本显示
                 $scope.showError = function (ngModelController, error) {
                     return ngModelController.$error[error];
                 };
 
+                //保存按钮是否可用
                 $scope.canSave = function () {
                     return $scope.userInfoForm.$dirty &&
                         $scope.userInfoForm.$valid;
+                };
+
+                //初始化 repeat 数据源
+                $scope.user = {
+                    websites: [
+                        { url: 'http://www.cnblogs.com/sephiroth-wzc/' },
+                        { url: 'https://github.com/sephirothwzc' }
+                    ]
+                };
+
+                //点击x删除内容
+                $scope.remove = function (index) {
+                    $scope.user.websites.splice(index, 1);
+                };
+
+                $scope.addwebsite = function () {
+                    $scope.user.websites.push({ url: '' });
                 };
             }
         );
