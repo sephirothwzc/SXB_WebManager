@@ -22,6 +22,45 @@
     }
 </style>
 
+<p>新增SYS_USER</p>
+<div ng-app="app_CreateUser" name="createuser" id="createuser" ng-controller="MainCtrl">
+    <div class="form-group">
+        <label>用户名</label>
+        <input type="text" ng-model="user.USERNAME" class="form-control" required/>
+        <div class="alert alert-danger" role="alert" ng-show="user.USERNAME.$invalid">*必填项目</div>
+    </div>
+    <div class="form-group">
+        <label>用户编号</label>
+        <input type="text" ng-model="user.USERCODE" class="form-control" required/>
+        <div class="alert alert-danger" role="alert">*必填项目</div>
+    </div>
+    <div class="form-group">
+        <label>密码</label>
+        <input type="text" ng-model="user.PASSWORD" class="form-control" required/>
+        <div class="alert alert-danger" role="alert">*必填项目</div>
+        <div class="alert alert-danger" role="alert" ng-show="user.PASSWORD != RPWD">确认密码与密码不一致</div>
+    </div>
+    <div class="form-group">
+        <label>确认密码</label>
+        <input type="text" ng-model="RPWD" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label>备注</label>
+        <input type="text" ng-model="user.REMARK" class="form-control" />
+    </div>
+    <button class="btn btn-default" ng-click="Create()">提交</button>
+</div>
+
+<p>表单重置</p>
+<form ng-app="app_revert" name="revertform" id="revertform" ng-controller="MainCtrl">
+    <label>用户名</label>
+    <input type="text" ng-model="user.USERNAME" required/>
+    <label>用户编码</label>
+    <input type="text" ng-model="user.USERCODE" />
+
+    <button ng-click="add()">保存</button>
+    <button ng-click="revert()">重置</button>
+</form>
 
 <p>form表单验证,对象选取 取决于name 不取决于id,novalidate关闭浏览器自带验证<br />
     ng-include 的 src 作为字符串存在，所以需要加'' 支持 路径或者 ng-template 的 id<br />
@@ -36,6 +75,7 @@
 
         <ng-include src="'passwordform'"></ng-include>
 
+        子表单重复项-字符串按值传递，所以ngRepeat区块中的字符串并非是对数组中字符串的引用，也就是说，修改输入框中的值时，数组并不会更新。
         <div ng-repeat="website in user.websites">
             <input type="url" ng-model="website.url" />
             <button ng-click="remove($index)">x</button>
@@ -409,10 +449,43 @@
             }
         );
 
+    //------------------------app_revert--------------------
+    angular.module('app_revert', [])
+
+        .controller('MainCtrl',
+            function ($scope) {
+                $scope.user = { };
+
+                var original = angular.copy($scope.user);
+
+                $scope.add = function () {
+                    original = angular.copy($scope.user);
+                    $scope.revertform.$setPristine();
+                };
+
+                $scope.revert = function () {
+                    $scope.user = original;
+                    $scope.revertform.$setPristine();
+                };
+            }
+        );
+
+    //------------------------app_CreateUser----------------
+    angular.module('app_CreateUser', [])
+
+        .controller('MainCtrl',
+            function ($scope, $http) {
+
+            }
+        );
+
     //手动启动第1个 ng-app
     angular.bootstrap(document.getElementById("app_add"), ['app_add']);
     //手动启动第二个 ng-app
     angular.bootstrap(document.getElementById("test2"), ['sxb']);
-    //angular.bootstrap(document.getElementById("userInfo"), ['sxb']);
+
+    angular.bootstrap(document.getElementById("userInfo"), ['app_formError']);
+
+    angular.bootstrap(document.getElementById("revertform"), ['app_revert']);
 </script>
 
