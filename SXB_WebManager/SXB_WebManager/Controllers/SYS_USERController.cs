@@ -24,10 +24,15 @@ namespace SXB_WebManager.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult CreateSYS_USER(SYS_USER user)
+        public ActionResult SaveSYS_USER(SYS_USER user)
         {
-            var rest = new DAO.SYS_USER_DAO().Insert(user);
-            return View();
+            user.LASTDATE = System.DateTime.Now;
+            var rest = 0;
+            if (string.IsNullOrEmpty(user.ROW_ID))
+                rest = new DAO.SYS_USER_DAO().Insert(user);
+            else
+                rest = new DAO.SYS_USER_DAO().Update(user);
+            return Json(user);
         }
     }
 }

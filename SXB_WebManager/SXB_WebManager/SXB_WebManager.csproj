@@ -90,7 +90,7 @@
     </Reference>
     <Reference Include="Sephiroth_DAO, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\SephirothORM工具\Debug\Sephiroth_DAO.dll</HintPath>
+      <HintPath>..\..\..\SephirothORM\Sephiroth_DAO\bin\Debug\Sephiroth_DAO.dll</HintPath>
     </Reference>
     <Reference Include="Sephiroth_IDao, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

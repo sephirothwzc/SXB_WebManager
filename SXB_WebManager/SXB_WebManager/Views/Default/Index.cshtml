@@ -53,6 +53,14 @@
             <label>备注</label>
             <input type="text" ng-model="user.REMARK" class="form-control inputwidth" />
         </div>
+        <div class="form-group">
+            <label>创建时间</label>
+            <input type="datetime" ng-model="user.CREATEDATE" class="form-control inputwidth" readonly/>
+        </div>
+        <div class="form-group">
+            <label>修改时间</label>
+            <input type="datetime" ng-model="jsonDateFormat(user.LASTDATE)" class="form-control inputwidth" readonly/>
+        </div>
         <button class="btn btn-default" ng-disabled="!canSave()" ng-click="Create()">提交</button>
     </form>
 </div>
@@ -502,12 +510,16 @@
                         $scope.CreateForm.$valid;
                 };
 
+                //日期方法
+                $scope.jsonDateFormat = jsonDateFormat;
+
                 //保存数据
                 $scope.Create = function () {
-                    $http.post('/SYS_USER/CreateSYS_USER',
+                    $http.post('/SYS_USER/SaveSYS_USER',
                         $scope.user)
                         .success(function (data) {
-                            alert(data);
+                            $scope.user = data;
+                            $scope.CreateForm.$setPristine();
                         });
                 };
             }
