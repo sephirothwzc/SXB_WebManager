@@ -20,41 +20,47 @@
     .ng-invalid.ng-dirty {
         border: solid red 3px;
     }
+
+    .inputwidth {
+        width: 200px;
+    }
 </style>
 
 <p>新增SYS_USER</p>
 <div ng-app="app_CreateUser" name="createuser" id="createuser" ng-controller="MainCtrl">
-    <div class="form-group">
-        <label>用户名</label>
-        <input type="text" ng-model="user.USERNAME" class="form-control" required/>
-        <div class="alert alert-danger" role="alert" ng-show="user.USERNAME.$invalid">*必填项目</div>
-    </div>
-    <div class="form-group">
-        <label>用户编号</label>
-        <input type="text" ng-model="user.USERCODE" class="form-control" required/>
-        <div class="alert alert-danger" role="alert">*必填项目</div>
-    </div>
-    <div class="form-group">
-        <label>密码</label>
-        <input type="text" ng-model="user.PASSWORD" class="form-control" required/>
-        <div class="alert alert-danger" role="alert">*必填项目</div>
-        <div class="alert alert-danger" role="alert" ng-show="user.PASSWORD != RPWD">确认密码与密码不一致</div>
-    </div>
-    <div class="form-group">
-        <label>确认密码</label>
-        <input type="text" ng-model="RPWD" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label>备注</label>
-        <input type="text" ng-model="user.REMARK" class="form-control" />
-    </div>
-    <button class="btn btn-default" ng-click="Create()">提交</button>
+    <form name="CreateForm" novalidate>
+        <div class="form-group">
+            <label>用户名</label>
+            <input name="username" type="text" ng-model="user.USERNAME" class="form-control inputwidth" required />
+            <div class="alert alert-danger" role="alert" ng-show="showError(CreateForm.username,'required')">*必填项目</div>
+        </div>
+        <div class="form-group">
+            <label>用户编号</label>
+            <input name="usercode" type="text" ng-model="user.USERCODE" class="form-control inputwidth" required />
+            <div class="alert alert-danger" role="alert" ng-show="showError(CreateForm.usercode,'required')">*必填项目</div>
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="text" name="password" ng-model="user.PASSWORD" class="form-control inputwidth" required />
+            <div class="alert alert-danger" role="alert" ng-show="showError(CreateForm.password,'required')">*必填项目</div>
+            <div class="alert alert-danger" role="alert" ng-show="user.PASSWORD != RPWD">确认密码与密码不一致</div>
+        </div>
+        <div class="form-group">
+            <label>确认密码</label>
+            <input type="text" ng-model="RPWD" class="form-control inputwidth" />
+        </div>
+        <div class="form-group">
+            <label>备注</label>
+            <input type="text" ng-model="user.REMARK" class="form-control inputwidth" />
+        </div>
+        <button class="btn btn-default" ng-disabled="!canSave()" ng-click="Create()">提交</button>
+    </form>
 </div>
 
 <p>表单重置</p>
 <form ng-app="app_revert" name="revertform" id="revertform" ng-controller="MainCtrl">
     <label>用户名</label>
-    <input type="text" ng-model="user.USERNAME" required/>
+    <input type="text" ng-model="user.USERNAME" required />
     <label>用户编码</label>
     <input type="text" ng-model="user.USERCODE" />
 
@@ -62,10 +68,12 @@
     <button ng-click="revert()">重置</button>
 </form>
 
-<p>form表单验证,对象选取 取决于name 不取决于id,novalidate关闭浏览器自带验证<br />
+<p>
+    form表单验证,对象选取 取决于name 不取决于id,novalidate关闭浏览器自带验证<br />
     ng-include 的 src 作为字符串存在，所以需要加'' 支持 路径或者 ng-template 的 id<br />
-    *ng-template 模板文件需要在 ng-app 中包裹否则404</p>
-<form  id="userInfo" name="userInfoForm" ng-app="app_formError" ng-controller="MainCtrl" novalidate >
+    *ng-template 模板文件需要在 ng-app 中包裹否则404
+</p>
+<form id="userInfo" name="userInfoForm" ng-app="app_formError" ng-controller="MainCtrl" novalidate>
     <div class="control-group" ng-class="getCssClasses(userInfoForm.email)">
         <label>邮箱</label>
         <input type="email" ng-model="user.EMAIL" name="email" required />
@@ -281,6 +289,17 @@
         }
     );
 
+    //根据ngModelController状态判断是否显示错误提示
+    ajsxb.factory('Errors',
+        function () {
+            return {
+                ShowError: function (ngModelController, error) {
+                    return ngModelController.$error[error];
+                }
+            };
+        }
+    );
+
     //分页过滤
     ajsxb.filter('pagination',
         function () {
@@ -415,7 +434,7 @@
                 $scope.getCssClasses = function (ngModelController) {
                     return {
                         error: ngModelController.$invalid && ngModelController.$idirty,
-                        success : ngModelController.$valid && ngModelController.$dirty
+                        success: ngModelController.$valid && ngModelController.$dirty
                     };
                 };
 
@@ -454,7 +473,7 @@
 
         .controller('MainCtrl',
             function ($scope) {
-                $scope.user = { };
+                $scope.user = {};
 
                 var original = angular.copy($scope.user);
 
@@ -471,11 +490,26 @@
         );
 
     //------------------------app_CreateUser----------------
-    angular.module('app_CreateUser', [])
+    angular.module('app_CreateUser', ['sxb'])
 
         .controller('MainCtrl',
-            function ($scope, $http) {
+            function ($scope, $http, Errors) {
+                $scope.showError = Errors.ShowError;
 
+                //保存按钮是否可用
+                $scope.canSave = function () {
+                    return $scope.CreateForm.$dirty &&
+                        $scope.CreateForm.$valid;
+                };
+
+                //保存数据
+                $scope.Create = function () {
+                    $http.post('/SYS_USER/CreateSYS_USER',
+                        $scope.user)
+                        .success(function (data) {
+                            alert(data);
+                        });
+                };
             }
         );
 

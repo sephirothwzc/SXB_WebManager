@@ -94,7 +94,7 @@
     </Reference>
     <Reference Include="Sephiroth_IDao, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\SephirothORM工具\Debug\Sephiroth_IDao.dll</HintPath>
+      <HintPath>..\..\..\SephirothORM\Sephiroth_IDao\bin\Debug\Sephiroth_IDao.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Spatial, Version=5.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
